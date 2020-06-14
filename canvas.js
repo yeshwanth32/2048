@@ -33,6 +33,8 @@ var board = [
 // 	[512, 1024, 2048, 4096],
 // ];
 
+addRandomBlock(board);
+addRandomBlock(board);
 drawBoard(starting_x, starting_y, board);
 
 // 0 : Left
@@ -42,46 +44,76 @@ drawBoard(starting_x, starting_y, board);
 function updateBoard(e) {
 	//console.log(e);
 	c.clearRect(0, 0, canvas.width, canvas.height);
-	addRandomBlock(board);
+	let moved = false;
+	switch (e) {
+		case 0:
+			moved = moveLeft(board);
+			break;
+		case 1:
+			moved = moveUp(board);
+			break;
+		case 2:
+			moved = moveRight(board);
+			break;
+		case 3:
+			moved = moveDown(board);
+			break;
+		default:
+			console.log("Error: unexpected move number");
+	}
+	if (moved) addRandomBlock(board);
+	else {
+		if (!findEmptySpace(board)) {
+			let tempBoard = board.map(function (arr) {
+				return arr.slice();
+			});
+			if (
+				!moveLeft(tempBoard) &&
+				!moveLeft(tempBoard) &&
+				!moveUp(tempBoard) &&
+				!moveDown(tempBoard)
+			)
+				gameOver();
+		}
+	}
 	drawBoard(starting_x, starting_y, board);
+}
+
+function gameOver() {
+	c.fillStyle = "rgba(255,255,255)";
+	c.font = "bold 80px verdana, sans-serif ";
+	c.fillText("GAME OVER", starting_x + 5, starting_y + 500, 400);
+}
+
+function findEmptySpace(board) {
+	return board.reduce(function (accm, curr) {
+		return accm
+			? true
+			: curr.reduce(function (accm2, curr2) {
+					return curr2 === 0 ? true : accm2;
+			  }, false);
+	}, false);
 }
 
 function addRandomBlock(board) {
 	// search for empty spaces to put new block
-	let emptySpace = false;
-	for (let j = 0; j < board.length; j++) {
-		for (let i = 0; i < board[j].length; i++) {
-			if (board[j][i] === 0) {
-				emptySpace = true;
-				break;
-			}
-		}
-		if (emptySpace) {
-			break;
-		}
-	}
-	// return false if no empty space is found
-	if (!emptySpace) {
-		return emptySpace;
-	}
+	let emptySpace = findEmptySpace(board);
 
-	// let r_x = getRandomArbitrary(0, 4);
-	// let r_y = getRandomArbitrary(0, 4);
-	// console.log(r_y);
+	// if there are no empty spaces left then return false;
+	if (!emptySpace) return emptySpace;
 
 	let setBlock = false;
 	while (!setBlock) {
 		let r_x = getRandomArbitrary(0, 3);
 		let r_y = getRandomArbitrary(0, 3);
-		//console.log(r_y);
-		// console.log(board);
-		// console.log(r_x + " " + r_x + " : " + board[r_x][r_y]);
 		if (board[r_y][r_x] === 0) {
 			setBlock = true;
-			board[r_y][r_x] = 2;
+			let ranNum = Math.random() < 0.9 ? 2 : 4;
+			board[r_y][r_x] = ranNum;
 			return true;
 		}
 	}
+	return false;
 }
 
 function getRandomArbitrary(min, max) {
@@ -90,14 +122,14 @@ function getRandomArbitrary(min, max) {
 
 function drawBoard(x, y, board) {
 	let dx = x;
-	for (let j = 0; j < board.length; j++) {
-		for (let i = 0; i < board[j].length; i++) {
-			drawBlock(x, y, board[j][i]);
+	board.map(function (arr) {
+		arr.map(function (block) {
+			drawBlock(x, y, block);
 			x += dWidth;
-		}
+		});
 		x = dx;
 		y += dHeight;
-	}
+	});
 }
 
 function drawBlock(x, y, value) {
@@ -184,6 +216,146 @@ function drawBlock(x, y, value) {
 		);
 		c.fillText(value, x, y, dWidth);
 	}
+}
+
+function moveRight(board) {
+	let moved = false;
+	for (let i = 0; i < board.length; ++i) {
+		if (
+			move(
+				board.length - 1,
+				board.length - 1,
+				function (k) {
+					return k >= 0;
+				},
+				function (k) {
+					return --k;
+				},
+				function (k) {
+					return board[i][k];
+				},
+				function (k, value) {
+					board[i][k] = value;
+				}
+			)
+		) {
+			moved = true;
+		}
+	}
+	return moved;
+}
+
+function moveLeft(board) {
+	let moved = false;
+	for (let i = 0; i < board.length; ++i) {
+		if (
+			move(
+				0,
+				0,
+				function (k) {
+					return k < board.length;
+				},
+				function (k) {
+					return ++k;
+				},
+				function (k) {
+					return board[i][k];
+				},
+				function (k, value) {
+					board[i][k] = value;
+				}
+			)
+		) {
+			moved = true;
+		}
+	}
+	return moved;
+}
+
+function moveDown(board) {
+	let moved = false;
+	for (let i = 0; i < board.length; ++i) {
+		if (
+			move(
+				board.length - 1,
+				board.length - 1,
+				function (k) {
+					return k >= 0;
+				},
+				function (k) {
+					return --k;
+				},
+				function (k) {
+					return board[k][i];
+				},
+				function (k, value) {
+					board[k][i] = value;
+				}
+			)
+		) {
+			moved = true;
+		}
+	}
+	return moved;
+}
+
+function moveUp(board) {
+	let moved = false;
+	for (let i = 0; i < board.length; ++i) {
+		if (
+			move(
+				0,
+				0,
+				function (k) {
+					return k < board.length;
+				},
+				function (k) {
+					return ++k;
+				},
+				function (k) {
+					return board[k][i];
+				},
+				function (k, value) {
+					board[k][i] = value;
+				}
+			)
+		) {
+			moved = true;
+		}
+	}
+	return moved;
+}
+
+function move(start, newEnd, end, move, get, set) {
+	let moved = false;
+	for (let i = start; end(i); i = move(i)) {
+		if (get(i) !== 0) {
+			swap(newEnd, i, get, set);
+			if (i !== newEnd) moved = true;
+			let found = false;
+			for (let j = move(i); end(j); j = move(j)) {
+				if (get(j) !== 0) {
+					if (get(j) === get(newEnd)) {
+						let temp = get(j);
+						set(j, 0);
+						set(newEnd, get(newEnd) + temp);
+						moved = true;
+					}
+					found = true;
+					break;
+				}
+			}
+			if (!found) break;
+			newEnd = move(newEnd);
+		}
+	}
+	return moved;
+}
+
+function swap(i1, i2, get, set) {
+	let temp = get(i1);
+	set(i1, get(i2));
+	set(i2, temp);
 }
 
 //   c.font = "bold 25px verdana, sans-serif ";
