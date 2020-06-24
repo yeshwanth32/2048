@@ -1,48 +1,64 @@
+// global variables
+var starting_x;
+var starting_y;
+var c;
+var canvas;
+var dWidth;
+var dHeight;
+var board;
+var gameOver_switch = false;
+
 window.onresize = function (event) {
-	document.location.reload(true);
+	init();
+	c.clearRect(0, 0, canvas.width, canvas.height);
+	drawBoard(starting_x, starting_y, board);
+	if (gameOver_switch) gameOver();
+	//document.location.reload(true);
 };
 
 window.addEventListener("keydown", function (event) {
 	updateBoard(event.keyCode - 37);
 });
 
-var canvas = document.querySelector("canvas");
+init();
+game();
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-canvas.font = "bold 24px verdana, sans-serif ";
+function init() {
+	canvas = document.querySelector("canvas");
 
-var c = canvas.getContext("2d");
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+	canvas.font = "bold 24px verdana, sans-serif ";
 
-var dWidth = 100;
-var dHeight = 100;
-var starting_x = canvas.width / 2 - dWidth * 2;
-var starting_y = canvas.height / 2 - dHeight * 2;
+	c = canvas.getContext("2d");
 
-var board = [
-	[0, 0, 0, 0],
-	[0, 0, 0, 0],
-	[0, 0, 0, 0],
-	[0, 0, 0, 0],
-];
+	dWidth = 100;
+	dHeight = 100;
+	starting_x = canvas.width / 2 - dWidth * 2;
+	starting_y = canvas.height / 2 - dHeight * 2;
+}
 
-// var board = [
-// 	[0, 0, 0, 0],
-// 	[2, 4, 8, 16],
-// 	[32, 64, 128, 256],
-// 	[512, 1024, 2048, 4096],
-// ];
+function game() {
+	board = [
+		[0, 0, 0, 0],
+		[0, 0, 0, 0],
+		[0, 0, 0, 0],
+		[0, 0, 0, 0],
+	];
 
-addRandomBlock(board);
-addRandomBlock(board);
-drawBoard(starting_x, starting_y, board);
+	addRandomBlock(board);
+	addRandomBlock(board);
+	drawBoard(starting_x, starting_y, board);
+	if (gameOver_switch) {
+		return false;
+	}
+}
 
 // 0 : Left
 // 1 : Up
 // 2 : Right
 // 3 : Down
 function updateBoard(e) {
-	//console.log(e);
 	c.clearRect(0, 0, canvas.width, canvas.height);
 	let moved = false;
 	switch (e) {
@@ -83,6 +99,7 @@ function gameOver() {
 	c.fillStyle = "rgba(255,255,255)";
 	c.font = "bold 80px verdana, sans-serif ";
 	c.fillText("GAME OVER", starting_x + 5, starting_y + 500, 400);
+	gameOver_switch = true;
 }
 
 function findEmptySpace(board) {
@@ -357,7 +374,3 @@ function swap(i1, i2, get, set) {
 	set(i1, get(i2));
 	set(i2, temp);
 }
-
-//   c.font = "bold 25px verdana, sans-serif ";
-//   c.fillStyle = "rgba(255,255,255)";
-//   c.fillText("testing", x, y);
